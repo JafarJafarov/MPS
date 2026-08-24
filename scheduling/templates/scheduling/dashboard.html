@@ -1,0 +1,2584 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        MPS | Scheduling Dashboard
+    </title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #263238;
+        }
+
+        .container {
+            width: 96%;
+            max-width: 1800px;
+            margin: 25px auto;
+        }
+
+        /* ==============================================
+           HEADER
+        ============================================== */
+
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+        }
+
+        .header h2 {
+            margin: 0 0 8px 0;
+            font-size: 20px;
+            color: #475467;
+        }
+
+        .header p {
+            margin: 4px 0;
+            color: #667085;
+        }
+
+        /* ==============================================
+           BUTTON
+        ============================================== */
+
+        .run-button {
+            background: #175cd3;
+            color: white;
+            border: none;
+            padding: 14px 22px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .run-button:hover {
+            background: #1849a9;
+        }
+
+        /* ==============================================
+           MESSAGE
+        ============================================== */
+
+        .message {
+            background: white;
+            padding: 14px 18px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #175cd3;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        /* ==============================================
+           KPI CARDS
+        ============================================== */
+
+        .cards {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(190px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            color: #667085;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .number {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .green {
+            color: #18794e;
+        }
+
+        .red {
+            color: #b42318;
+        }
+
+        .orange {
+            color: #b54708;
+        }
+
+        .blue {
+            color: #175cd3;
+        }
+
+        .purple {
+            color: #6938ef;
+        }
+
+        /* ==============================================
+           SECTION
+        ============================================== */
+
+        .section {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        .section h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        /* ==============================================
+           TABLE
+        ============================================== */
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid #e4e7ec;
+            padding: 10px;
+            text-align: left;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f9fafb;
+            color: #475467;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+        /* ==============================================
+           STATUS
+        ============================================== */
+
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .status-green {
+            background: #ecfdf3;
+            color: #027a48;
+        }
+
+        .status-red {
+            background: #fef3f2;
+            color: #b42318;
+        }
+
+        .status-orange {
+            background: #fffaeb;
+            color: #b54708;
+        }
+
+        /* ==============================================
+           UTILIZATION BAR
+        ============================================== */
+
+        .progress {
+            width: 160px;
+            height: 10px;
+            background: #eaecf0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #175cd3;
+            border-radius: 10px;
+        }
+
+        /* ==============================================
+           GANTT SEGMENT
+        ============================================== */
+
+        .segment {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            padding: 6px 9px;
+            border-radius: 5px;
+            margin: 2px;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+
+        .overdue-row {
+            background: #fff5f5;
+        }
+
+        .overdue-row:hover {
+            background: #feecec;
+        }
+
+        .reason {
+            min-width: 300px;
+            max-width: 500px;
+            white-space: normal;
+        }
+
+        .small {
+            font-size: 12px;
+            color: #667085;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 25px;
+            color: #667085;
+        }
+
+        /* ==============================================
+           RUN INFORMATION
+        ============================================== */
+
+        .run-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .run-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 7px;
+        }
+
+        .run-label {
+            font-size: 12px;
+            color: #667085;
+            margin-bottom: 5px;
+        }
+
+        .run-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* ==============================================
+           CAPACITY STATUS
+        ============================================== */
+
+        .capacity-status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .capacity-low {
+            background: #f2f4f7;
+            color: #475467;
+        }
+
+        .capacity-normal {
+            background: #ecfdf3;
+            color: #027a48;
+        }
+
+        .capacity-high {
+            background: #fffaeb;
+            color: #b54708;
+        }
+
+        .capacity-overload {
+            background: #fef3f2;
+            color: #b42318;
+        }
+
+        .progress-bar-low {
+            background: #98a2b3;
+        }
+
+        .progress-bar-normal {
+            background: #12b76a;
+        }
+
+        .progress-bar-high {
+            background: #f79009;
+        }
+
+        .progress-bar-overload {
+            background: #d92d20;
+        }
+
+        .capacity-overload-row {
+            background: #fff5f5;
+        }
+
+        .capacity-overload-row:hover {
+            background: #feecec;
+        }
+
+        /* ==============================================
+           11.3 REAL GANTT
+        ============================================== */
+
+        .gantt-wrapper {
+            overflow-x: auto;
+            border: 1px solid #eaecf0;
+            border-radius: 12px;
+            background: #ffffff;
+        }
+
+        .gantt-table {
+            min-width: 1250px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .gantt-table th,
+        .gantt-table td {
+            border-bottom: 1px solid #eaecf0;
+            vertical-align: middle;
+        }
+
+        .gantt-info-head,
+        .gantt-info {
+            min-width: 285px;
+            width: 285px;
+            padding: 10px 12px;
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            background: #ffffff;
+            border-right: 1px solid #eaecf0;
+        }
+
+        .gantt-info-head {
+            z-index: 5;
+            background: #f9fafb;
+        }
+
+        .gantt-order {
+            font-weight: 700;
+            color: #101828;
+        }
+
+        .gantt-meta {
+            margin-top: 3px;
+            font-size: 11px;
+            color: #667085;
+        }
+
+        .gantt-day-head {
+            min-width: 180px;
+            padding: 8px 6px;
+            text-align: center;
+            background: #f9fafb;
+        }
+
+        .gantt-day-title {
+            font-weight: 700;
+        }
+
+        .gantt-hours {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 9px;
+            color: #98a2b3;
+        }
+
+        .gantt-cell {
+            position: relative;
+            min-width: 180px;
+            height: 48px;
+            background-image:
+                linear-gradient(
+                    to right,
+                    transparent 0,
+                    transparent 44.44%,
+                    rgba(249, 112, 102, 0.08) 44.44%,
+                    rgba(249, 112, 102, 0.08) 55.56%,
+                    transparent 55.56%,
+                    transparent 100%
+                ),
+                repeating-linear-gradient(
+                    to right,
+                    transparent,
+                    transparent calc(11.111% - 1px),
+                    #f2f4f7 calc(11.111% - 1px),
+                    #f2f4f7 11.111%
+                );
+        }
+
+        .gantt-segment {
+            position: absolute;
+            top: 10px;
+            height: 28px;
+            min-width: 4px;
+            border-radius: 5px;
+            background: #1570ef;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.15);
+            cursor: default;
+        }
+
+        .gantt-segment.overdue {
+            background: #d92d20;
+        }
+
+        .gantt-segment.locked {
+            outline: 2px solid #7f56d9;
+            outline-offset: 1px;
+        }
+
+        .gantt-empty {
+            padding: 24px;
+            text-align: center;
+            color: #667085;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 8px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+        }
+
+        .section-header p {
+            margin: 5px 0 0;
+            color: #667085;
+            font-size: 13px;
+        }
+
+        .gantt-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin: 10px 0 14px;
+            font-size: 12px;
+            color: #475467;
+        }
+
+        .gantt-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .gantt-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            background: #1570ef;
+        }
+
+        .gantt-dot.overdue {
+            background: #d92d20;
+        }
+
+        .gantt-dot.lunch {
+            background: rgba(249, 112, 102, 0.18);
+            border: 1px solid rgba(249, 112, 102, 0.35);
+        }
+
+        /* ==============================================
+           11.3.1 GANTT DETAILS / TEAM LOAD
+        ============================================== */
+
+        .gantt-segment {
+            transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+        }
+
+        .gantt-segment:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(16, 24, 40, 0.22);
+            filter: brightness(1.04);
+        }
+
+        .gantt-segment.clickable {
+            cursor: pointer;
+        }
+
+        .gantt-load-panel {
+            margin-top: 18px;
+            border: 1px solid #eaecf0;
+            border-radius: 12px;
+            background: #fff;
+            padding: 16px;
+        }
+
+        .gantt-load-panel h3 {
+            margin: 0 0 5px;
+            font-size: 17px;
+        }
+
+        .gantt-load-note {
+            margin: 0 0 14px;
+            color: #667085;
+            font-size: 12px;
+        }
+
+        .team-load-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 12px;
+        }
+
+        .team-load-card {
+            border: 1px solid #eaecf0;
+            border-radius: 10px;
+            padding: 13px;
+            background: #f9fafb;
+        }
+
+        .team-load-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .team-load-name {
+            font-weight: 700;
+            color: #101828;
+        }
+
+        .team-load-percent {
+            font-weight: 700;
+            color: #175cd3;
+        }
+
+        .team-load-bar {
+            height: 9px;
+            border-radius: 8px;
+            background: #eaecf0;
+            overflow: hidden;
+            margin: 8px 0 9px;
+        }
+
+        .team-load-fill {
+            height: 100%;
+            border-radius: 8px;
+            background: #1570ef;
+        }
+
+        .team-load-fill.high { background: #f79009; }
+        .team-load-fill.overload { background: #d92d20; }
+
+        .team-load-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            color: #667085;
+            font-size: 11px;
+        }
+
+        .gantt-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 24, 40, .42);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .gantt-modal-backdrop.open {
+            display: flex;
+        }
+
+        .gantt-modal {
+            width: min(560px, 100%);
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 20px 50px rgba(16, 24, 40, .25);
+            padding: 20px;
+        }
+
+        .gantt-modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 16px;
+        }
+
+        .gantt-modal-head h3 {
+            margin: 0;
+            font-size: 20px;
+            color: #101828;
+        }
+
+        .gantt-modal-close {
+            border: none;
+            background: #f2f4f7;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            color: #475467;
+        }
+
+        .gantt-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .gantt-detail-item {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 11px;
+        }
+
+        .gantt-detail-label {
+            display: block;
+            font-size: 11px;
+            color: #667085;
+            margin-bottom: 4px;
+        }
+
+        .gantt-detail-value {
+            font-weight: 700;
+            color: #101828;
+        }
+
+        @media (max-width: 650px) {
+            .gantt-detail-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ==============================================
+           11.4 EXCEPTION / UNSCHEDULED PANEL
+        ============================================== */
+
+        .exception-summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .exception-summary-card {
+            border: 1px solid #eaecf0;
+            border-radius: 10px;
+            padding: 14px;
+            background: #ffffff;
+        }
+
+        .exception-summary-card strong {
+            display: block;
+            font-size: 24px;
+            margin-top: 4px;
+        }
+
+        .exception-label {
+            font-size: 12px;
+            color: #667085;
+        }
+
+        .exception-table-wrap {
+            overflow-x: auto;
+        }
+
+        .exception-table {
+            width: 100%;
+            min-width: 1050px;
+            border-collapse: collapse;
+        }
+
+        .exception-table th {
+            background: #f9fafb;
+            color: #475467;
+            font-size: 11px;
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #eaecf0;
+        }
+
+        .exception-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f2f4f7;
+            vertical-align: top;
+            font-size: 12px;
+        }
+
+        .reason-box {
+            max-width: 430px;
+            padding: 8px 10px;
+            border-radius: 7px;
+            background: #fef3f2;
+            color: #912018;
+            line-height: 1.4;
+        }
+
+        .review-reason-box {
+            max-width: 430px;
+            padding: 8px 10px;
+            border-radius: 7px;
+            background: #fffaeb;
+            color: #93370d;
+            line-height: 1.4;
+        }
+
+        .exception-badge {
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 16px;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .exception-badge-red {
+            background: #fef3f2;
+            color: #b42318;
+        }
+
+        .exception-badge-yellow {
+            background: #fffaeb;
+            color: #b54708;
+        }
+
+        .exception-empty {
+            padding: 22px;
+            text-align: center;
+            color: #667085;
+        }
+
+        /* ==============================================
+           11.5 MANAGEMENT SUMMARY
+        ============================================== */
+
+        .management-panel {
+            border: 1px solid #eaecf0;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 20px;
+            background: #ffffff;
+        }
+
+        .management-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .management-status {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .management-status-normal {
+            background: #ecfdf3;
+            color: #027a48;
+        }
+
+        .management-status-attention {
+            background: #fffaeb;
+            color: #b54708;
+        }
+
+        .management-status-critical {
+            background: #fef3f2;
+            color: #b42318;
+        }
+
+        .management-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .management-kpi {
+            border: 1px solid #eaecf0;
+            border-radius: 10px;
+            padding: 14px;
+            background: #f9fafb;
+        }
+
+        .management-kpi-label {
+            color: #667085;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .management-kpi-value {
+            color: #101828;
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+        .management-kpi-note {
+            margin-top: 4px;
+            color: #667085;
+            font-size: 10px;
+        }
+
+        .management-alerts {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .management-alert {
+            padding: 6px 9px;
+            border-radius: 7px;
+            background: #f2f4f7;
+            color: #475467;
+            font-size: 11px;
+        }
+
+        /* ==============================================
+           RESPONSIVE
+        ============================================== */
+
+        @media (max-width: 900px) {
+
+            .container {
+                width: 98%;
+            }
+
+            .header {
+                padding: 18px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+        }
+
+    
+        @media (max-width: 900px) {
+            .management-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .management-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .management-top {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+</style>
+
+</head>
+
+
+<body>
+
+    <!-- =====================================================
+         11.5 MANAGEMENT SUMMARY
+    ====================================================== -->
+
+    <section class="management-panel">
+
+        <div class="management-top">
+
+            <div>
+                <h2 style="margin: 0;">
+                    Management Summary
+                </h2>
+                <p style="margin: 5px 0 0; color: #667085;">
+                    {{ weekly_plan }} üzrə əsas planlama göstəriciləri
+                </p>
+            </div>
+
+            <div>
+                {% if management_status == "CRITICAL" %}
+                    <span class="management-status management-status-critical">
+                        {{ management_status_label }}
+                    </span>
+                {% elif management_status == "ATTENTION" %}
+                    <span class="management-status management-status-attention">
+                        {{ management_status_label }}
+                    </span>
+                {% else %}
+                    <span class="management-status management-status-normal">
+                        {{ management_status_label }}
+                    </span>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="management-grid">
+
+            <div class="management-kpi">
+                <div class="management-kpi-label">
+                    Schedule Success
+                </div>
+                <div class="management-kpi-value">
+                    {{ schedule_success_percent }}%
+                </div>
+                <div class="management-kpi-note">
+                    {{ scheduled_count }} / {{ total_decisions }} operation
+                </div>
+            </div>
+
+            <div class="management-kpi">
+                <div class="management-kpi-label">
+                    Capacity Utilization
+                </div>
+                <div class="management-kpi-value">
+                    {{ total_utilization }}%
+                </div>
+                <div class="management-kpi-note">
+                    {{ total_planned_mh }} / {{ total_capacity_mh }} MH
+                </div>
+            </div>
+
+            <div class="management-kpi">
+                <div class="management-kpi-label">
+                    Remaining Capacity
+                </div>
+                <div class="management-kpi-value">
+                    {{ remaining_capacity_mh }} MH
+                </div>
+                <div class="management-kpi-note">
+                    Həftə üzrə qalan resurs
+                </div>
+            </div>
+
+            <div class="management-kpi">
+                <div class="management-kpi-label">
+                    Overdue
+                </div>
+                <div class="management-kpi-value">
+                    {{ overdue_count }}
+                </div>
+                <div class="management-kpi-note">
+                    {{ overdue_percent }}% ümumi qərarlardan
+                </div>
+            </div>
+
+            <div class="management-kpi">
+                <div class="management-kpi-label">
+                    Not Scheduled
+                </div>
+                <div class="management-kpi-value">
+                    {{ not_scheduled_count }}
+                </div>
+                <div class="management-kpi-note">
+                    Proqrama yerləşməyən operation
+                </div>
+            </div>
+
+            <div class="management-kpi">
+                <div class="management-kpi-label">
+                    Manual Review
+                </div>
+                <div class="management-kpi-value">
+                    {{ review_count }}
+                </div>
+                <div class="management-kpi-note">
+                    Manual qərar tələb edir
+                </div>
+            </div>
+
+            <div class="management-kpi">
+                <div class="management-kpi-label">
+                    Overload Ekiplər
+                </div>
+                <div class="management-kpi-value">
+                    {{ overload_workcenters }}
+                </div>
+                <div class="management-kpi-note">
+                    Utilization &gt; 100%
+                </div>
+            </div>
+
+            <div class="management-kpi">
+                <div class="management-kpi-label">
+                    Yüksək Yüklü Ekiplər
+                </div>
+                <div class="management-kpi-value">
+                    {{ high_load_workcenters }}
+                </div>
+                <div class="management-kpi-note">
+                    Utilization 85–100%
+                </div>
+            </div>
+
+        </div>
+
+        <div class="management-alerts">
+
+            {% if overload_workcenters > 0 %}
+                <span class="management-alert">
+                    ⚠ {{ overload_workcenters }} ekip overload vəziyyətindədir
+                </span>
+            {% endif %}
+
+            {% if not_scheduled_count > 0 %}
+                <span class="management-alert">
+                    ⚠ {{ not_scheduled_count }} operation proqrama düşməyib
+                </span>
+            {% endif %}
+
+            {% if review_count > 0 %}
+                <span class="management-alert">
+                    ⚠ {{ review_count }} operation manual review tələb edir
+                </span>
+            {% endif %}
+
+            {% if overdue_count > 0 %}
+                <span class="management-alert">
+                    ⚠ {{ overdue_count }} gecikmiş operation var
+                </span>
+            {% endif %}
+
+            {% if overload_workcenters == 0 and not_scheduled_count == 0 and review_count == 0 and overdue_count == 0 %}
+                <span class="management-alert">
+                    Əsas planlama riski aşkarlanmayıb.
+                </span>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+<div class="container">
+
+
+    <!-- =================================================
+         HEADER
+    ================================================== -->
+
+    <div class="header">
+
+        <div class="header-top">
+
+            <div>
+
+                <h1>
+                    MPS — Həftəlik Təmir Proqramı
+                </h1>
+
+                <h2>
+                    W{{ weekly_plan.week_number }}
+                    /
+                    {{ weekly_plan.year }}
+                </h2>
+
+                <p>
+                    <strong>Proqram:</strong>
+                    {{ weekly_plan.name }}
+                </p>
+
+                <p>
+                    <strong>Dövr:</strong>
+
+                    {{ weekly_plan.start_date|date:"d.m.Y" }}
+
+                    —
+
+                    {{ weekly_plan.end_date|date:"d.m.Y" }}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ weekly_plan.get_status_display }}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                
+                <a
+                    href="{% url 'scheduling:export_excel' weekly_plan.id %}"
+                    class="btn btn-secondary"
+                    style="text-decoration: none;"
+                >
+                    Excel Export
+                </a>
+
+                <a
+                    href="{% url 'scheduling:export_pdf' weekly_plan.id %}"
+                    class="btn btn-secondary"
+                    style="text-decoration: none;"
+                >
+                    PDF Export
+                </a>
+
+<form method="post">
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="run-button"
+                    >
+                        Proqramı avtomatik hazırla / yenilə
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         DJANGO MESSAGES
+    ================================================== -->
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="message">
+                {{ message }}
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    <!-- =================================================
+         KPI CARDS
+    ================================================== -->
+
+    <div class="cards">
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Proqrama alınan
+            </div>
+
+            <div class="number green">
+                {{ scheduled_count }}
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Proqrama alınmayan
+            </div>
+
+            <div class="number red">
+                {{ not_scheduled_count }}
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Manual Review
+            </div>
+
+            <div class="number orange">
+                {{ review_count }}
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Gecikmiş iş
+            </div>
+
+            <div class="number red">
+                {{ overdue_count }}
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Planlanan MH
+            </div>
+
+            <div class="number blue">
+                {{ total_planned_mh|floatformat:2 }}
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Ümumi Capacity MH
+            </div>
+
+            <div class="number purple">
+                {{ total_capacity_mh|floatformat:2 }}
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Ümumi Utilization
+            </div>
+
+            <div class="number blue">
+                {{ total_utilization|floatformat:2 }}%
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =================================================
+         WORKCENTER CAPACITY
+    ================================================== -->
+
+    <div class="section">
+
+        <h2>
+            Ekip üzrə Capacity və Utilization
+        </h2>
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Ekip
+                    </th>
+
+                    <th>
+                        Adam sayı
+                    </th>
+
+                    <th>
+                        Məhsuldar saat/gün
+                    </th>
+
+                    <th>
+                        İş günü
+                    </th>
+
+                    <th>
+                        Capacity MH
+                    </th>
+
+                    <th>
+                        Planlanan MH
+                    </th>
+
+                    <th>
+                        Qalan MH
+                    </th>
+
+                    <th>
+                        Operation sayı
+                    </th>
+
+                    <th>
+                        Utilization
+                    </th>
+
+                    <th>
+                        Capacity status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for row in workcenter_rows %}
+
+                <tr
+                    {% if row.utilization_percent > 100 %}
+                        class="capacity-overload-row"
+                    {% endif %}
+                >
+
+                    <td>
+                        <strong>
+                            {{ row.code }}
+                        </strong>
+                    </td>
+
+
+                    <td>
+                        {{ row.headcount }}
+                    </td>
+
+
+                    <td>
+                        {{ row.productive_hours_per_day }}
+                    </td>
+
+
+                    <td>
+                        {{ row.working_days }}
+                    </td>
+
+
+                    <td>
+                        {{ row.weekly_capacity_mh|floatformat:2 }}
+                    </td>
+
+
+                    <td>
+                        {{ row.planned_mh|floatformat:2 }}
+                    </td>
+
+
+                    <td>
+                        {{ row.remaining_mh|floatformat:2 }}
+                    </td>
+
+
+                    <td>
+                        {{ row.operations }}
+                    </td>
+
+
+                    <td>
+
+                        <div class="progress">
+
+                            <div
+                                class="
+                                    progress-bar
+                                    {% if row.utilization_percent > 100 %}
+                                        progress-bar-overload
+                                    {% elif row.utilization_percent >= 85 %}
+                                        progress-bar-high
+                                    {% elif row.utilization_percent >= 60 %}
+                                        progress-bar-normal
+                                    {% else %}
+                                        progress-bar-low
+                                    {% endif %}
+                                "
+                                style="
+                                    width:
+                                    {% if row.utilization_percent > 100 %}
+                                        100%
+                                    {% else %}
+                                        {{ row.utilization_percent }}%
+                                    {% endif %};
+                                "
+                            >
+                            </div>
+
+                        </div>
+
+                        {{ row.utilization_percent }}%
+
+                    </td>
+
+                    <td>
+
+                        {% if row.utilization_percent > 100 %}
+
+                            <span class="capacity-status capacity-overload">
+                                OVERLOAD
+                            </span>
+
+                        {% elif row.utilization_percent >= 85 %}
+
+                            <span class="capacity-status capacity-high">
+                                YÜKSƏK YÜK
+                            </span>
+
+                        {% elif row.utilization_percent >= 60 %}
+
+                            <span class="capacity-status capacity-normal">
+                                NORMAL
+                            </span>
+
+                        {% else %}
+
+                            <span class="capacity-status capacity-low">
+                                BOŞ CAPACITY
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+
+            {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="10"
+                        class="empty"
+                    >
+                        Bu həftə üçün capacity məlumatı yoxdur.
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- =================================================
+         NOT SCHEDULED
+    ================================================== -->
+
+    <div class="section">
+
+        <h2 class="red">
+            Proqrama alınmayan işlər
+        </h2>
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Sifariş
+                    </th>
+
+                    <th>
+                        Operation
+                    </th>
+
+                    <th>
+                        Təsvir
+                    </th>
+
+                    <th>
+                        Ekip
+                    </th>
+
+                    <th>
+                        Prioritet
+                    </th>
+
+                    <th>
+                        MH
+                    </th>
+
+                    <th>
+                        Qərarın səbəbi
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for item in not_scheduled %}
+
+                <tr>
+
+                    <td>
+
+                        <strong>
+                            {{ item.sap_operation.order.order_number }}
+                        </strong>
+
+                    </td>
+
+
+                    <td>
+                        {{ item.sap_operation.operation_number }}
+                    </td>
+
+
+                    <td>
+                        {{ item.sap_operation.description }}
+                    </td>
+
+
+                    <td>
+
+                        {% if item.work_center %}
+
+                            {{ item.work_center.code }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+
+                        {% if item.priority %}
+
+                            P{{ item.priority }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+                        {{ item.planned_mh|default:"-" }}
+                    </td>
+
+
+                    <td class="reason">
+
+                        <span
+                            class="status status-red"
+                        >
+                            PROQRAMDAN KƏNAR
+                        </span>
+
+                        <br><br>
+
+                        {{ item.decision_reason }}
+
+                    </td>
+
+                </tr>
+
+
+            {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="empty"
+                    >
+                        Proqrama alınmayan operation yoxdur.
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- =================================================
+         MANUAL REVIEW
+    ================================================== -->
+
+    <div class="section">
+
+        <h2 class="orange">
+            Manual yoxlama tələb edən işlər
+        </h2>
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Sifariş
+                    </th>
+
+                    <th>
+                        Operation
+                    </th>
+
+                    <th>
+                        Təsvir
+                    </th>
+
+                    <th>
+                        Ekip
+                    </th>
+
+                    <th>
+                        Prioritet
+                    </th>
+
+                    <th>
+                        Səbəb
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for item in review %}
+
+                <tr>
+
+                    <td>
+
+                        <strong>
+                            {{ item.sap_operation.order.order_number }}
+                        </strong>
+
+                    </td>
+
+
+                    <td>
+                        {{ item.sap_operation.operation_number }}
+                    </td>
+
+
+                    <td>
+                        {{ item.sap_operation.description }}
+                    </td>
+
+
+                    <td>
+
+                        {% if item.work_center %}
+
+                            {{ item.work_center.code }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td>
+
+                        {% if item.priority %}
+
+                            P{{ item.priority }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </td>
+
+
+                    <td class="reason">
+
+                        <span
+                            class="status status-orange"
+                        >
+                            REVIEW
+                        </span>
+
+                        <br><br>
+
+                        {{ item.decision_reason }}
+
+                    </td>
+
+                </tr>
+
+
+            {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="6"
+                        class="empty"
+                    >
+                        Manual review tələb edən operation yoxdur.
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- =================================================
+         LAST SCHEDULING RUN
+    ================================================== -->
+
+    {% if last_run %}
+
+        <div class="section">
+
+            <h2>
+                Son Scheduling Run
+            </h2>
+
+
+            <div class="run-grid">
+
+
+                <div class="run-item">
+
+                    <div class="run-label">
+                        Status
+                    </div>
+
+                    <div class="run-value">
+
+                        {% if last_run.status == "COMPLETED" %}
+
+                            <span
+                                class="status status-green"
+                            >
+                                {{ last_run.get_status_display }}
+                            </span>
+
+                        {% elif last_run.status == "FAILED" %}
+
+                            <span
+                                class="status status-red"
+                            >
+                                {{ last_run.get_status_display }}
+                            </span>
+
+                        {% else %}
+
+                            <span
+                                class="status status-orange"
+                            >
+                                {{ last_run.get_status_display }}
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="run-item">
+
+                    <div class="run-label">
+                        Ümumi operation
+                    </div>
+
+                    <div class="run-value">
+                        {{ last_run.total_operations }}
+                    </div>
+
+                </div>
+
+
+                <div class="run-item">
+
+                    <div class="run-label">
+                        Proqrama alınan
+                    </div>
+
+                    <div class="run-value">
+                        {{ last_run.scheduled_operations }}
+                    </div>
+
+                </div>
+
+
+                <div class="run-item">
+
+                    <div class="run-label">
+                        Proqrama alınmayan
+                    </div>
+
+                    <div class="run-value">
+                        {{ last_run.not_scheduled_operations }}
+                    </div>
+
+                </div>
+
+
+                <div class="run-item">
+
+                    <div class="run-label">
+                        Manual Review
+                    </div>
+
+                    <div class="run-value">
+                        {{ last_run.review_operations }}
+                    </div>
+
+                </div>
+
+
+                <div class="run-item">
+
+                    <div class="run-label">
+                        Planlanan MH
+                    </div>
+
+                    <div class="run-value">
+                        {{ last_run.total_planned_mh|floatformat:2 }}
+                    </div>
+
+                </div>
+
+
+                <div class="run-item">
+
+                    <div class="run-label">
+                        Başlama vaxtı
+                    </div>
+
+                    <div class="run-value">
+                        {{ last_run.started_at|date:"d.m.Y H:i:s" }}
+                    </div>
+
+                </div>
+
+
+                <div class="run-item">
+
+                    <div class="run-label">
+                        Bitmə vaxtı
+                    </div>
+
+                    <div class="run-value">
+
+                        {% if last_run.completed_at %}
+
+                            {{ last_run.completed_at|date:"d.m.Y H:i:s" }}
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            {% if last_run.error_message %}
+
+                <div
+                    style="
+                        margin-top: 15px;
+                        padding: 15px;
+                        background: #fef3f2;
+                        border-radius: 7px;
+                        color: #b42318;
+                    "
+                >
+
+                    <strong>
+                        Xəta:
+                    </strong>
+
+                    {{ last_run.error_message }}
+
+                </div>
+
+            {% endif %}
+
+
+        </div>
+
+    {% endif %}
+
+
+</div>
+
+
+    <!-- =====================================================
+         11.3 REAL GANTT CHART
+    ====================================================== -->
+
+    <div class="section">
+
+        <div class="section-header">
+            <div>
+                <h2>Həftəlik Gantt Chart</h2>
+                <p>
+                    Operation-ların gün və saat üzrə real planı
+                </p>
+            </div>
+        </div>
+
+        <div class="gantt-legend">
+            <span class="gantt-legend-item">
+                <span class="gantt-dot"></span>
+                Planlanmış iş
+            </span>
+
+            <span class="gantt-legend-item">
+                <span class="gantt-dot overdue"></span>
+                Gecikmiş iş
+            </span>
+
+            <span class="gantt-legend-item">
+                <span class="gantt-dot lunch"></span>
+                12:00–13:00 nahar
+            </span>
+        </div>
+
+        <div class="gantt-wrapper">
+
+            {% if gantt_rows %}
+
+                <table class="gantt-table">
+
+                    <thead>
+                        <tr>
+                            <th class="gantt-info-head">
+                                Sifariş / Operation / Ekip
+                            </th>
+
+                            {% for day in gantt_days %}
+                                <th class="gantt-day-head">
+                                    <div class="gantt-day-title">
+                                        {{ day.date|date:"d.m.Y" }}
+                                    </div>
+                                    <div class="gantt-hours">
+                                        <span>08</span>
+                                        <span>10</span>
+                                        <span>12</span>
+                                        <span>14</span>
+                                        <span>16</span>
+                                        <span>17</span>
+                                    </div>
+                                </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in gantt_rows %}
+
+                            <tr>
+
+                                <td class="gantt-info">
+                                    <div class="gantt-order">
+                                        {{ row.item.sap_operation.order.order_number }}
+                                        /
+                                        {{ row.item.sap_operation.operation_number }}
+                                    </div>
+
+                                    <div class="gantt-meta">
+                                        {% if row.item.work_center %}
+                                            {{ row.item.work_center.code }}
+                                        {% else %}
+                                            Ekip yoxdur
+                                        {% endif %}
+                                        ·
+                                        {{ row.item.required_people|default:"-" }} nəfər
+                                        ·
+                                        {{ row.item.planned_mh|default:"0" }} MH
+                                    </div>
+
+                                    <div class="gantt-meta">
+                                        P{{ row.item.priority|default:"-" }}
+                                        {% if row.item.is_locked %}
+                                            · 🔒 Locked
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                {% for day in gantt_days %}
+
+                                    <td class="gantt-cell">
+
+                                        {% for segment in row.segments %}
+
+                                            {% if segment.date == day.date %}
+
+                                                <div
+                                                    class="
+                                                        gantt-segment clickable
+                                                        {% if row.item.is_overdue %}
+                                                            overdue
+                                                        {% endif %}
+                                                        {% if row.item.is_locked %}
+                                                            locked
+                                                        {% endif %}
+                                                    "
+                                                    style="
+                                                        position: absolute;
+                                                        top: 10px;
+                                                        left: 0;
+                                                        width: 0;
+                                                        height: 28px;
+                                                        min-width: 0;
+                                                        display: block;
+                                                    "
+                                                    data-gantt-start="{{ segment.start_time|time:"H:i" }}"
+                                                    data-gantt-end="{{ segment.end_time|time:"H:i" }}"
+                                                    data-order="{{ row.item.sap_operation.order.order_number }}"
+                                                    data-operation="{{ row.item.sap_operation.operation_number }}"
+                                                    data-description="{{ row.item.sap_operation.description|default:"-"|escape }}"
+                                                    data-team="{% if row.item.work_center %}{{ row.item.work_center.code|escape }}{% else %}Ekip yoxdur{% endif %}"
+                                                    data-people="{{ row.item.required_people|default:"0" }}"
+                                                    data-mh="{{ row.item.planned_mh|default:"0" }}"
+                                                    data-priority="{{ row.item.priority|default:"-" }}"
+                                                    data-due="{{ row.item.due_date|date:"d.m.Y"|default:"-" }}"
+                                                    data-locked="{% if row.item.is_locked %}Bəli{% else %}Xeyr{% endif %}"
+                                                    data-overdue="{% if row.item.is_overdue %}Bəli{% else %}Xeyr{% endif %}"
+                                                    title="
+                                                        {{ row.item.sap_operation.order.order_number }}
+                                                        /
+                                                        {{ row.item.sap_operation.operation_number }}
+                                                        | {{ segment.start_time|time:"H:i" }}
+                                                        - {{ segment.end_time|time:"H:i" }}
+                                                    "
+                                                ></div>
+
+                                            {% endif %}
+
+                                        {% endfor %}
+
+                                    </td>
+
+                                {% endfor %}
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            {% else %}
+
+                <div class="gantt-empty">
+                    Gantt üçün planlanmış operation yoxdur.
+                    Əvvəlcə scheduler-i işə salın.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <div class="gantt-load-panel">
+            <h3>Ekip üzrə plan yükü</h3>
+            <p class="gantt-load-note">Göstərici Gantt-dakı planlanmış adam-saat əsasında hesablanır. Tutum üçün həftəlik 5 gün × 6,75 saat × həmin ekipdə tələb olunan maksimum nəfər sayı götürülür.</p>
+            <div id="teamLoadGrid" class="team-load-grid">
+                <div class="empty">Ekip yükü hesablanır...</div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- =====================================================
+         11.3.2 OPERATION DETAIL MODAL
+    ====================================================== -->
+    <div id="ganttModalBackdrop" class="gantt-modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="gantt-modal">
+            <div class="gantt-modal-head">
+                <div>
+                    <h3 id="ganttModalTitle">Operation detalları</h3>
+                    <div class="small" id="ganttModalSubtitle"></div>
+                </div>
+                <button type="button" class="gantt-modal-close" id="ganttModalClose" aria-label="Bağla">×</button>
+            </div>
+            <div class="gantt-detail-grid">
+                <div class="gantt-detail-item"><span class="gantt-detail-label">Sifariş</span><span class="gantt-detail-value" id="detailOrder">-</span></div>
+                <div class="gantt-detail-item"><span class="gantt-detail-label">Operation</span><span class="gantt-detail-value" id="detailOperation">-</span></div>
+                <div class="gantt-detail-item"><span class="gantt-detail-label">Ekip</span><span class="gantt-detail-value" id="detailTeam">-</span></div>
+                <div class="gantt-detail-item"><span class="gantt-detail-label">İcra vaxtı</span><span class="gantt-detail-value" id="detailTime">-</span></div>
+                <div class="gantt-detail-item"><span class="gantt-detail-label">Adam sayı</span><span class="gantt-detail-value" id="detailPeople">-</span></div>
+                <div class="gantt-detail-item"><span class="gantt-detail-label">Plan MH</span><span class="gantt-detail-value" id="detailMH">-</span></div>
+                <div class="gantt-detail-item"><span class="gantt-detail-label">Prioritet</span><span class="gantt-detail-value" id="detailPriority">-</span></div>
+                <div class="gantt-detail-item"><span class="gantt-detail-label">Due date</span><span class="gantt-detail-value" id="detailDue">-</span></div>
+                <div class="gantt-detail-item"><span class="gantt-detail-label">Gecikmiş</span><span class="gantt-detail-value" id="detailOverdue">-</span></div>
+                <div class="gantt-detail-item"><span class="gantt-detail-label">Locked</span><span class="gantt-detail-value" id="detailLocked">-</span></div>
+            </div>
+            <div class="gantt-detail-item" style="margin-top:10px;">
+                <span class="gantt-detail-label">Təsvir</span>
+                <span class="gantt-detail-value" id="detailDescription">-</span>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =====================================================
+         11.4 EXCEPTION / UNSCHEDULED PANEL
+    ====================================================== -->
+
+    <section class="section-card">
+
+        <div class="section-header">
+            <div>
+                <h2>Exception / Unscheduled Panel</h2>
+                <p>
+                    Proqrama düşməyən və manual yoxlama tələb edən işlərin səbəbləri
+                </p>
+            </div>
+        </div>
+
+        <div class="exception-summary">
+
+            <div class="exception-summary-card">
+                <span class="exception-label">
+                    Proqrama alınmayan
+                </span>
+                <strong>{{ not_scheduled_count }}</strong>
+            </div>
+
+            <div class="exception-summary-card">
+                <span class="exception-label">
+                    Manual review
+                </span>
+                <strong>{{ review_count }}</strong>
+            </div>
+
+        </div>
+
+        <h3>Proqrama alınmayan operation-lar</h3>
+
+        <div class="exception-table-wrap">
+
+            {% if not_scheduled %}
+
+                <table class="exception-table">
+                    <thead>
+                        <tr>
+                            <th>Order №</th>
+                            <th>Operation</th>
+                            <th>WorkCenter</th>
+                            <th>Priority</th>
+                            <th>Due Date</th>
+                            <th>People</th>
+                            <th>Planned MH</th>
+                            <th>Status</th>
+                            <th>Səbəb</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in not_scheduled %}
+                            <tr>
+                                <td>
+                                    <strong>
+                                        {{ item.sap_operation.order.order_number }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ item.sap_operation.operation_number }}
+                                </td>
+
+                                <td>
+                                    {% if item.work_center %}
+                                        {{ item.work_center.code }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if item.priority %}
+                                        P{{ item.priority }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if item.due_date %}
+                                        {{ item.due_date|date:"d.m.Y" }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {{ item.required_people|default:"—" }}
+                                </td>
+
+                                <td>
+                                    {{ item.planned_mh|default:"—" }}
+                                </td>
+
+                                <td>
+                                    <span class="exception-badge exception-badge-red">
+                                        NOT SCHEDULED
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="reason-box">
+                                        {% if item.decision_reason %}
+                                            {{ item.decision_reason }}
+                                        {% else %}
+                                            Səbəb qeyd edilməyib.
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+            {% else %}
+
+                <div class="exception-empty">
+                    Proqrama alınmayan operation yoxdur.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <h3 style="margin-top: 24px;">
+            Manual Review
+        </h3>
+
+        <div class="exception-table-wrap">
+
+            {% if review %}
+
+                <table class="exception-table">
+                    <thead>
+                        <tr>
+                            <th>Order №</th>
+                            <th>Operation</th>
+                            <th>WorkCenter</th>
+                            <th>Priority</th>
+                            <th>Due Date</th>
+                            <th>People</th>
+                            <th>Planned MH</th>
+                            <th>Status</th>
+                            <th>Səbəb</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in review %}
+                            <tr>
+                                <td>
+                                    <strong>
+                                        {{ item.sap_operation.order.order_number }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ item.sap_operation.operation_number }}
+                                </td>
+
+                                <td>
+                                    {% if item.work_center %}
+                                        {{ item.work_center.code }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if item.priority %}
+                                        P{{ item.priority }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if item.due_date %}
+                                        {{ item.due_date|date:"d.m.Y" }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {{ item.required_people|default:"—" }}
+                                </td>
+
+                                <td>
+                                    {{ item.planned_mh|default:"—" }}
+                                </td>
+
+                                <td>
+                                    <span class="exception-badge exception-badge-yellow">
+                                        REVIEW
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="review-reason-box">
+                                        {% if item.decision_reason %}
+                                            {{ item.decision_reason }}
+                                        {% else %}
+                                            Manual yoxlama səbəbi qeyd edilməyib.
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+            {% else %}
+
+                <div class="exception-empty">
+                    Manual review tələb edən operation yoxdur.
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const START_MIN = 8 * 60;
+            const END_MIN = 17 * 60;
+            const WORKING_DAYS = 5;
+            const HOURS_PER_DAY = 6.75;
+
+            function toMinutes(value) {
+                if (!value) return null;
+                const parts = value.split(":");
+                if (parts.length < 2) return null;
+                return Number(parts[0]) * 60 + Number(parts[1]);
+            }
+
+            function numberValue(value) {
+                if (!value) return 0;
+                const normalized = String(value).replace(",", ".");
+                const n = Number(normalized);
+                return Number.isFinite(n) ? n : 0;
+            }
+
+            /* Gantt bar ölçüləri */
+            document.querySelectorAll(".gantt-segment[data-gantt-start]").forEach(function (bar) {
+                const start = toMinutes(bar.dataset.ganttStart);
+                const end = toMinutes(bar.dataset.ganttEnd);
+
+                if (start === null || end === null || end <= start) return;
+
+                const clampedStart = Math.max(START_MIN, Math.min(start, END_MIN));
+                const clampedEnd = Math.max(START_MIN, Math.min(end, END_MIN));
+
+                const left = ((clampedStart - START_MIN) / (END_MIN - START_MIN)) * 100;
+                const width = ((clampedEnd - clampedStart) / (END_MIN - START_MIN)) * 100;
+
+                bar.style.left = left.toFixed(2) + "%";
+                bar.style.width = width.toFixed(2) + "%";
+                bar.style.minWidth = "4px";
+            });
+
+            /* Operation detalları */
+            const backdrop = document.getElementById("ganttModalBackdrop");
+            const closeButton = document.getElementById("ganttModalClose");
+
+            function setDetail(id, value) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value || "-";
+            }
+
+            function openDetails(bar) {
+                setDetail("detailOrder", bar.dataset.order);
+                setDetail("detailOperation", bar.dataset.operation);
+                setDetail("detailTeam", bar.dataset.team);
+                setDetail("detailTime", (bar.dataset.ganttStart || "-") + " – " + (bar.dataset.ganttEnd || "-"));
+                setDetail("detailPeople", numberValue(bar.dataset.people).toFixed(2).replace(".00", "") + " nəfər");
+                setDetail("detailMH", numberValue(bar.dataset.mh).toFixed(2) + " MH");
+                setDetail("detailPriority", "P" + (bar.dataset.priority || "-"));
+                setDetail("detailDue", bar.dataset.due || "-");
+                setDetail("detailOverdue", bar.dataset.overdue || "Xeyr");
+                setDetail("detailLocked", bar.dataset.locked || "Xeyr");
+                setDetail("detailDescription", bar.dataset.description || "-");
+
+                document.getElementById("ganttModalTitle").textContent =
+                    (bar.dataset.order || "-") + " / " + (bar.dataset.operation || "-");
+                document.getElementById("ganttModalSubtitle").textContent =
+                    (bar.dataset.ganttStart || "-") + " – " + (bar.dataset.ganttEnd || "-") + " | " + (bar.dataset.team || "Ekip yoxdur");
+
+                backdrop.classList.add("open");
+                backdrop.setAttribute("aria-hidden", "false");
+            }
+
+            function closeDetails() {
+                backdrop.classList.remove("open");
+                backdrop.setAttribute("aria-hidden", "true");
+            }
+
+            document.querySelectorAll(".gantt-segment.clickable").forEach(function (bar) {
+                bar.addEventListener("click", function () { openDetails(bar); });
+            });
+
+            closeButton.addEventListener("click", closeDetails);
+            backdrop.addEventListener("click", function (event) {
+                if (event.target === backdrop) closeDetails();
+            });
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") closeDetails();
+            });
+
+            /* Ekip üzrə yük */
+            const teamMap = {};
+            document.querySelectorAll(".gantt-segment[data-team]").forEach(function (bar) {
+                const team = bar.dataset.team || "Ekip yoxdur";
+                const mh = numberValue(bar.dataset.mh);
+                const people = numberValue(bar.dataset.people);
+
+                if (!teamMap[team]) {
+                    teamMap[team] = { mh: 0, people: 0, operations: new Set() };
+                }
+
+                teamMap[team].mh += mh;
+                teamMap[team].people = Math.max(teamMap[team].people, people);
+                teamMap[team].operations.add((bar.dataset.order || "") + "/" + (bar.dataset.operation || ""));
+            });
+
+            const loadGrid = document.getElementById("teamLoadGrid");
+            const teams = Object.keys(teamMap).sort();
+
+            if (loadGrid) {
+                if (!teams.length) {
+                    loadGrid.innerHTML = '<div class="empty">Gantt-da planlanmış ekip yoxdur.</div>';
+                } else {
+                    loadGrid.innerHTML = teams.map(function (team) {
+                        const item = teamMap[team];
+                        const capacity = item.people * HOURS_PER_DAY * WORKING_DAYS;
+                        const utilization = capacity > 0 ? (item.mh / capacity) * 100 : 0;
+                        const shown = Math.min(utilization, 100);
+                        const cls = utilization > 100 ? "overload" : (utilization >= 85 ? "high" : "");
+                        const remaining = Math.max(capacity - item.mh, 0);
+
+                        return `
+                            <div class="team-load-card">
+                                <div class="team-load-top">
+                                    <span class="team-load-name">${team}</span>
+                                    <span class="team-load-percent">${utilization.toFixed(1)}%</span>
+                                </div>
+                                <div class="team-load-bar">
+                                    <div class="team-load-fill ${cls}" style="width:${shown.toFixed(1)}%"></div>
+                                </div>
+                                <div class="team-load-meta"><span>Plan: ${item.mh.toFixed(2)} MH</span><span>${item.operations.size} operation</span></div>
+                                <div class="team-load-meta" style="margin-top:4px"><span>Tutum: ${capacity.toFixed(2)} MH</span><span>Qalan: ${remaining.toFixed(2)} MH</span></div>
+                            </div>`;
+                    }).join("");
+                }
+            }
+        });
+    </script>
+
+</body>
+
+</html>

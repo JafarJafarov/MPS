@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MPS | İTK Import</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            margin: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        h1, h2, h3 {
+            color: #1f3b5b;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .success {
+            background: #eaf7ee;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .warning {
+            background: #fff4df;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .error {
+            background: #fdeaea;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        button, .button {
+            display: inline-block;
+            padding: 10px 18px;
+            margin: 5px 5px 5px 0;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #1f4e78;
+            color: white;
+            text-decoration: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 9px;
+            text-align: left;
+        }
+
+        th {
+            background: #eef2f6;
+        }
+
+        .ok {
+            color: #18794e;
+            font-weight: bold;
+        }
+
+        .not-found {
+            color: #b42318;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>İTK Həftəlik Təmir Sifarişləri</h1>
+
+    <div class="card">
+
+        <h2>1. İTK şablonu</h2>
+
+        <p>
+            İTK tərəfindən həftəlik proqrama tələb olunan
+            SAP sifarişlərini bu şablona daxil edin.
+        </p>
+
+        <a
+            class="button"
+            href="{% url 'planning:itk_template' %}"
+        >
+            İTK şablonunu yüklə
+        </a>
+
+    </div>
+
+    <div class="card">
+
+        <h2>2. Həftəni və İTK faylını seç</h2>
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <button
+                type="submit"
+                name="action"
+                value="validate"
+            >
+                Faylı yoxla
+            </button>
+
+            <button
+                type="submit"
+                name="action"
+                value="import"
+            >
+                Yoxla və import et
+            </button>
+
+        </form>
+
+    </div>
+
+    {% if validation_complete %}
+
+        <div class="card">
+
+            <h2>İTK ↔ SAP yoxlama nəticəsi</h2>
+
+            <p>
+                <strong>Həftə:</strong>
+                {{ weekly_plan }}
+            </p>
+
+            <table>
+                <tr>
+                    <th>Göstərici</th>
+                    <th>Nəticə</th>
+                </tr>
+
+                <tr>
+                    <td>İTK tərəfindən verilən sifariş</td>
+                    <td>{{ total_orders }}</td>
+                </tr>
+
+                <tr>
+                    <td>SAP-da tapılan</td>
+                    <td>{{ found_count }}</td>
+                </tr>
+
+                <tr>
+                    <td>SAP-da tapılmayan</td>
+                    <td>{{ missing_count }}</td>
+                </tr>
+
+                <tr>
+                    <td>Excel problemi</td>
+                    <td>{{ problem_count }}</td>
+                </tr>
+            </table>
+
+        </div>
+
+        {% if missing_in_sap %}
+
+            <div class="warning">
+
+                <h3>SAP-da tapılmayan sifarişlər</h3>
+
+                <table>
+                    <tr>
+                        <th>Excel sətri</th>
+                        <th>Sifariş</th>
+                        <th>Qeyd</th>
+                        <th>Status</th>
+                    </tr>
+
+                    {% for item in missing_in_sap %}
+
+                        <tr>
+                            <td>{{ item.row }}</td>
+
+                            <td>
+                                {{ item.order_number }}
+                            </td>
+
+                            <td>
+                                {{ item.note }}
+                            </td>
+
+                            <td class="not-found">
+                                SAP-da tapılmadı
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </table>
+
+            </div>
+
+        {% endif %}
+
+
+        {% if found_in_sap %}
+
+            <div class="success">
+
+                <h3>SAP ilə uyğun gələn sifarişlər</h3>
+
+                <table>
+                    <tr>
+                        <th>Sifariş</th>
+                        <th>Qeyd</th>
+                        <th>Status</th>
+                    </tr>
+
+                    {% for item in found_in_sap %}
+
+                        <tr>
+                            <td>
+                                {{ item.order_number }}
+                            </td>
+
+                            <td>
+                                {{ item.note }}
+                            </td>
+
+                            <td class="ok">
+                                SAP-da tapıldı
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </table>
+
+            </div>
+
+        {% endif %}
+
+    {% endif %}
+
+
+    {% if problems %}
+
+        <div class="error">
+
+            <h3>İTK Excel problemləri</h3>
+
+            <table>
+                <tr>
+                    <th>Sətir</th>
+                    <th>Sifariş</th>
+                    <th>Səbəb</th>
+                </tr>
+
+                {% for problem in problems %}
+
+                    <tr>
+                        <td>{{ problem.row }}</td>
+                        <td>{{ problem.order }}</td>
+                        <td>{{ problem.reason }}</td>
+                    </tr>
+
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+    {% endif %}
+
+
+    {% if import_blocked %}
+
+        <div class="error">
+
+            <h3>Import dayandırıldı</h3>
+
+            <p>
+                Excel daxilində problem olduğu üçün
+                İTK məlumatları bazaya yazılmadı.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+    {% if import_success %}
+
+        <div class="success">
+
+            <h2>
+                İTK sifarişləri uğurla yadda saxlanıldı
+            </h2>
+
+            <p>
+                Yeni sifariş:
+                <strong>{{ created_count }}</strong>
+            </p>
+
+            <p>
+                Yenilənən sifariş:
+                <strong>{{ updated_count }}</strong>
+            </p>
+
+            {% if missing_count %}
+
+                <p>
+                    <strong>Diqqət:</strong>
+
+                    {{ missing_count }}
+                    sifariş SAP məlumatlarında tapılmadı.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+
+    {% if validation_failed %}
+
+        <div class="error">
+
+            <h2>Fayl yoxlanıla bilmədi</h2>
+
+            {% if missing_columns %}
+
+                <p>
+                    <strong>Çatışmayan sütunlar:</strong>
+                </p>
+
+                <ul>
+                    {% for column in missing_columns %}
+                        <li>{{ column }}</li>
+                    {% endfor %}
+                </ul>
+
+            {% endif %}
+
+            {% if general_error %}
+                <p>{{ general_error }}</p>
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

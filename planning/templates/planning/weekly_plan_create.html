@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>
+        MPS | Yeni həftə
+    </title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            margin: 40px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        h1 {
+            color: #1f3b5b;
+        }
+
+        form p {
+            margin-bottom: 18px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 9px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 11px 20px;
+            background: #1f4e78;
+            color: white;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .errorlist {
+            color: #b42318;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Yeni Həftəlik Proqram</h1>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">
+            Həftəni yarat
+        </button>
+
+    </form>
+
+    <a
+        class="back"
+        href="{% url 'planning:weekly_plan_list' %}"
+    >
+        ← Həftəlik proqramlara qayıt
+    </a>
+
+</div>
+
+</body>
+</html>

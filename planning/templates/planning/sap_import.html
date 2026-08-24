@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>
+        MPS | SAP məlumatlarının yüklənməsi
+    </title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        h1, h2, h3 {
+            color: #1f3b5b;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .success {
+            background: #eaf7ee;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .warning {
+            background: #fff4df;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .error {
+            background: #fdeaea;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        button,
+        .button {
+            display: inline-block;
+            padding: 10px 18px;
+            margin: 5px 5px 5px 0;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #1f4e78;
+            color: white;
+            text-decoration: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #eef2f6;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>
+        SAP / IW37N məlumatlarının yüklənməsi
+    </h1>
+
+    <div class="card">
+
+        <h2>1. SAP şablonu</h2>
+
+        <p>
+            MPS üçün tələb olunan SAP Excel
+            formatını buradan əldə edə bilərsiniz.
+        </p>
+
+        <a
+            class="button"
+            href="{% url 'planning:sap_template' %}"
+        >
+            SAP şablonunu yüklə
+        </a>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>2. SAP Excel faylı</h2>
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <button
+                type="submit"
+                name="action"
+                value="validate"
+            >
+                Faylı yoxla
+            </button>
+
+            <button
+                type="submit"
+                name="action"
+                value="import"
+            >
+                Yoxla və bazaya import et
+            </button>
+
+        </form>
+
+    </div>
+
+
+    {% if validation_complete %}
+
+    <div class="card">
+
+        <h2>Yoxlama nəticəsi</h2>
+
+        <p>
+            <strong>Fayl:</strong>
+            {{ file_name }}
+        </p>
+
+        <table>
+
+            <tr>
+                <th>Göstərici</th>
+                <th>Nəticə</th>
+            </tr>
+
+            <tr>
+                <td>Oxunan sətir</td>
+                <td>{{ total_rows }}</td>
+            </tr>
+
+            <tr>
+                <td>Unikal sifariş</td>
+                <td>{{ unique_order_count }}</td>
+            </tr>
+
+            <tr>
+                <td>Düzgün sətir</td>
+                <td>{{ valid_rows }}</td>
+            </tr>
+
+            <tr>
+                <td>Problemli sətir</td>
+                <td>{{ error_rows }}</td>
+            </tr>
+
+            <tr>
+                <td>Naməlum ekip</td>
+                <td>
+                    {{ unknown_workcenter_count }}
+                </td>
+            </tr>
+
+        </table>
+
+    </div>
+
+
+    {% if unknown_workcenters %}
+
+    <div class="warning">
+
+        <h3>
+            Kapasite bazasında olmayan ekiplər
+        </h3>
+
+        <p>
+            Bu məlumatlar itirilməyəcək.
+            SAP ekip kodu saxlanılacaq.
+        </p>
+
+        <ul>
+            {% for workcenter in unknown_workcenters %}
+                <li>{{ workcenter }}</li>
+            {% endfor %}
+        </ul>
+
+    </div>
+
+    {% endif %}
+
+
+    {% if problems %}
+
+    <div class="error">
+
+        <h3>Problemli SAP sətirləri</h3>
+
+        <table>
+
+            <tr>
+                <th>Excel sətri</th>
+                <th>Sifariş</th>
+                <th>Operation</th>
+                <th>Səbəb</th>
+            </tr>
+
+            {% for problem in problems %}
+
+            <tr>
+
+                <td>
+                    {{ problem.row }}
+                </td>
+
+                <td>
+                    {{ problem.order }}
+                </td>
+
+                <td>
+                    {{ problem.operation }}
+                </td>
+
+                <td>
+                    {% for text in problem.problems %}
+                        {{ text }}
+                        {% if not forloop.last %}
+                            <br>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+    {% endif %}
+
+    {% endif %}
+
+
+    {% if import_blocked %}
+
+    <div class="error">
+
+        <h3>Import dayandırıldı</h3>
+
+        <p>
+            Problemli SAP sətirləri mövcuddur.
+            Məlumat bazasına import edilmədi.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+
+    {% if import_success %}
+
+    <div class="success">
+
+        <h2>
+            SAP məlumatları uğurla import edildi
+        </h2>
+
+        <p>
+            Yeni sifariş:
+            <strong>
+                {{ imported_orders }}
+            </strong>
+        </p>
+
+        <p>
+            Yeni operation:
+            <strong>
+                {{ imported_operations }}
+            </strong>
+        </p>
+
+        <p>
+            Yenilənən operation:
+            <strong>
+                {{ updated_operations }}
+            </strong>
+        </p>
+
+    </div>
+
+    {% endif %}
+
+
+    {% if validation_failed %}
+
+    <div class="error">
+
+        <h2>
+            Fayl yoxlanıla bilmədi
+        </h2>
+
+        {% if missing_columns %}
+
+        <p>
+            <strong>
+                Çatışmayan məcburi sütunlar:
+            </strong>
+        </p>
+
+        <ul>
+            {% for column in missing_columns %}
+                <li>{{ column }}</li>
+            {% endfor %}
+        </ul>
+
+        {% endif %}
+
+        {% if general_error %}
+            <p>{{ general_error }}</p>
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MPS | Həftəlik Ekip Kapasitesi</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+
+        h1, h2, h3 {
+            color: #1f3b5b;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .success {
+            background: #eaf7ee;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .error {
+            background: #fdeaea;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        button,
+        .button {
+            display: inline-block;
+            padding: 10px 18px;
+            margin: 5px 5px 5px 0;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #1f4e78;
+            color: white;
+            text-decoration: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 9px;
+            text-align: left;
+        }
+
+        th {
+            background: #eef2f6;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Həftəlik Ekip Kapasitesi</h1>
+
+    <div class="card">
+
+        <h2>1. Capacity şablonu</h2>
+
+        <p>
+            Şablonda WorkCenter və həmin həftə
+            mövcud olan adam sayını göstərin.
+        </p>
+
+        <a
+            class="button"
+            href="{% url 'capacity:capacity_template' %}"
+        >
+            Capacity şablonunu yüklə
+        </a>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>2. Həftəni və Excel faylını seç</h2>
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+            <p style="color:#667085; font-size:13px;">
+                Əvvəl test etdiyimiz <strong>W35-2026</strong> proqramını seç,
+                sonra Excel faylını yoxla.
+            </p>
+
+            <p>
+                <label for="id_weekly_plan">
+                    <strong>Həftəlik proqram:</strong>
+                </label>
+
+                <select
+                    name="weekly_plan"
+                    id="id_weekly_plan"
+                    required
+                    style="width: 100%; padding: 10px; margin-top: 6px;"
+                >
+                    <option value="">
+                        -- Həftəlik proqram seçin --
+                    </option>
+
+                    {% for plan in weekly_plans %}
+                        <option
+                            value="{{ plan.id }}"
+                            {% if request.POST.weekly_plan == plan.id|stringformat:"s" %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ plan }} —
+                            {{ plan.start_date|date:"d.m.Y" }}
+                            -
+                            {{ plan.end_date|date:"d.m.Y" }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </p>
+
+            {{ form.as_p }}
+
+            <button
+                type="submit"
+                name="action"
+                value="validate"
+            >
+                Faylı yoxla
+            </button>
+
+            <button
+                type="submit"
+                name="action"
+                value="import"
+            >
+                Yoxla və import et
+            </button>
+
+        </form>
+
+    </div>
+
+
+    {% if validation_complete %}
+
+    <div class="card">
+
+        <h2>Yoxlama nəticəsi</h2>
+
+        <p>
+            <strong>Həftə:</strong>
+            {{ weekly_plan }}
+        </p>
+
+        <table>
+
+            <tr>
+                <th>Göstərici</th>
+                <th>Nəticə</th>
+            </tr>
+
+            <tr>
+                <td>Oxunan ekip</td>
+                <td>{{ total_rows }}</td>
+            </tr>
+
+            <tr>
+                <td>Düzgün ekip</td>
+                <td>{{ valid_rows }}</td>
+            </tr>
+
+            <tr>
+                <td>Problemli ekip</td>
+                <td>{{ error_rows }}</td>
+            </tr>
+
+        </table>
+
+    </div>
+
+    {% endif %}
+
+
+    {% if problems %}
+
+    <div class="error">
+
+        <h3>Problemli məlumatlar</h3>
+
+        <ul>
+            {% for problem in problems %}
+                <li>{{ problem }}</li>
+            {% endfor %}
+        </ul>
+
+    </div>
+
+    {% endif %}
+
+
+    {% if import_blocked %}
+
+    <div class="error">
+
+        <h3>Import dayandırıldı</h3>
+
+        <p>
+            Problemli məlumat olduğu üçün
+            həmin həftənin kapasitesi import edilmədi.
+        </p>
+
+    </div>
+
+    {% endif %}
+
+
+    {% if import_success %}
+
+    <div class="success">
+
+        <h2>Capacity uğurla yadda saxlanıldı</h2>
+
+        <p>
+            <strong>Həftə:</strong>
+            {{ weekly_plan }}
+        </p>
+
+        <p>
+            Yeni WorkCenter:
+            <strong>
+                {{ created_workcenters }}
+            </strong>
+        </p>
+
+        <p>
+            Yeni həftəlik capacity:
+            <strong>
+                {{ created_capacities }}
+            </strong>
+        </p>
+
+        <p>
+            Yenilənən capacity:
+            <strong>
+                {{ updated_capacities }}
+            </strong>
+        </p>
+
+    </div>
+
+    {% endif %}
+
+
+    {% if validation_failed %}
+
+    <div class="error">
+
+        <h2>Fayl yoxlanıla bilmədi</h2>
+
+        {% if missing_columns %}
+
+        <p>
+            <strong>
+                Çatışmayan sütunlar:
+            </strong>
+        </p>
+
+        <ul>
+            {% for column in missing_columns %}
+                <li>{{ column }}</li>
+            {% endfor %}
+        </ul>
+
+        {% endif %}
+
+        {% if general_error %}
+            <p>{{ general_error }}</p>
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

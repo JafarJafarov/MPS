@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="az">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>
+        MPS | İTK SAP Operation-ları
+    </title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: auto;
+        }
+
+        .header,
+        .card {
+            background: white;
+            padding: 22px;
+            margin-bottom: 18px;
+            border-radius: 10px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #1f3b5b;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns:
+                repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .summary-number {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1f4e78;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 16px;
+            background: #1f4e78;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #eef2f6;
+        }
+
+        .order-header {
+            background: #e9eef5;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: 6px;
+        }
+
+        .found {
+            color: #18794e;
+            font-weight: bold;
+        }
+
+        .missing {
+            color: #b42318;
+            font-weight: bold;
+        }
+
+        .warning {
+            color: #9a6700;
+            font-weight: bold;
+        }
+
+        .note {
+            color: #555;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <h1>
+            İTK → SAP Operation Analizi
+        </h1>
+
+        <p>
+            <strong>Proqram:</strong>
+            {{ weekly_plan.name }}
+        </p>
+
+        <p>
+            <strong>Həftə:</strong>
+            W{{ weekly_plan.week_number }}-{{ weekly_plan.year }}
+        </p>
+
+        <p>
+            <strong>Tarix:</strong>
+
+            {{ weekly_plan.start_date|date:"d.m.Y" }}
+
+            -
+
+            {{ weekly_plan.end_date|date:"d.m.Y" }}
+        </p>
+
+        <a
+            class="button"
+            href="{% url 'planning:itk_import' %}"
+        >
+            İTK Import
+        </a>
+
+        <a
+            class="button"
+            href="{% url 'planning:weekly_plan_list' %}"
+        >
+            Həftəlik proqramlar
+        </a>
+
+    </div>
+
+
+    <div class="summary">
+
+        <div class="summary-card">
+            <div class="summary-number">
+                {{ total_itk_orders }}
+            </div>
+            İTK sifarişi
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-number">
+                {{ found_orders }}
+            </div>
+            SAP-da tapıldı
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-number">
+                {{ missing_orders }}
+            </div>
+            SAP-da tapılmadı
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-number">
+                {{ total_operations }}
+            </div>
+            Operation
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-number">
+                {{ total_planned_mh|floatformat:2 }}
+            </div>
+            Plan MH
+        </div>
+
+    </div>
+
+
+    {% if workcenter_rows %}
+
+    <div class="card">
+
+        <h2>
+            Ekip üzrə tələb
+        </h2>
+
+        <table>
+
+            <tr>
+                <th>Ekip</th>
+                <th>Operation sayı</th>
+                <th>Tələb olunan MH</th>
+            </tr>
+
+            {% for item in workcenter_rows %}
+
+            <tr>
+
+                <td>
+                    {{ item.code }}
+                </td>
+
+                <td>
+                    {{ item.operation_count }}
+                </td>
+
+                <td>
+                    {{ item.planned_mh|floatformat:2 }}
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+    {% endif %}
+
+
+    <div class="card">
+
+        <h2>
+            İTK sifarişləri və SAP operation-ları
+        </h2>
+
+
+        {% if results %}
+
+            {% for item in results %}
+
+                <div class="order-header">
+
+                    <strong>
+                        Order:
+                        {{ item.itk_request.order_number }}
+                    </strong>
+
+                    &nbsp; | &nbsp;
+
+                    {% if item.status == "FOUND" %}
+
+                        <span class="found">
+                            {{ item.status_text }}
+                        </span>
+
+                    {% elif item.status == "NOT_FOUND" %}
+
+                        <span class="missing">
+                            {{ item.status_text }}
+                        </span>
+
+                    {% else %}
+
+                        <span class="warning">
+                            {{ item.status_text }}
+                        </span>
+
+                    {% endif %}
+
+
+                    {% if item.itk_request.note %}
+
+                        <br>
+
+                        <span class="note">
+                            İTK qeydi:
+                            {{ item.itk_request.note }}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if item.sap_order %}
+
+                    <p>
+
+                        <strong>Prioritet:</strong>
+
+                        {% if item.sap_order.priority %}
+                            {{ item.sap_order.priority }}
+                        {% else %}
+                            -
+                        {% endif %}
+
+                        &nbsp; | &nbsp;
+
+                        <strong>Sifariş tipi:</strong>
+
+                        {% if item.sap_order.order_type %}
+                            {{ item.sap_order.order_type }}
+                        {% else %}
+                            -
+                        {% endif %}
+
+                        &nbsp; | &nbsp;
+
+                        <strong>Yaranma tarixi:</strong>
+
+                        {% if item.sap_order.created_on %}
+                            {{ item.sap_order.created_on|date:"d.m.Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+
+                    </p>
+
+                {% endif %}
+
+
+                {% if item.operations %}
+
+                    <table>
+
+                        <tr>
+                            <th>Order</th>
+                            <th>Operation</th>
+                            <th>Ekip</th>
+                            <th>İşin təsviri</th>
+                            <th>Adam sayı</th>
+                            <th>Plan MH</th>
+                            <th>Müddət, saat</th>
+                            <th>Operation statusu</th>
+                            <th>User status</th>
+                        </tr>
+
+
+                        {% for row in item.operations %}
+
+                            <tr>
+
+                                <td>
+                                    {{ item.itk_request.order_number }}
+                                </td>
+
+                                <td>
+                                    {{ row.operation.operation_number }}
+                                </td>
+
+                                <td>
+                                    {{ row.workcenter_code }}
+                                </td>
+
+                                <td>
+                                    {{ row.operation.description }}
+                                </td>
+
+                                <td>
+                                    {% if row.operation.required_people %}
+                                        {{ row.operation.required_people }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if row.operation.planned_work_mh %}
+                                        {{ row.operation.planned_work_mh }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if row.duration %}
+                                        {{ row.duration|floatformat:2 }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if row.operation.operation_system_status %}
+                                        {{ row.operation.operation_system_status }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if row.operation.user_status %}
+                                        {{ row.operation.user_status }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </table>
+
+                {% endif %}
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>
+                Bu həftə üçün İTK sifarişi yoxdur.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>
